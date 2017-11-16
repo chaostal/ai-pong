@@ -47,6 +47,8 @@ class Player:
     def draw_paddle(self, w):
         pygame.draw.rect(w, white, [self.x, self.y - self.h/2, self.w, self.h])
 
+
+class Human(Player):
     def event_handling(self):
 
         if event.type == pygame.KEYDOWN:
@@ -67,8 +69,8 @@ class Player:
         self.y += self.y_change
 
 
-p = Player(0, pygame.K_w, pygame.K_s)
-p2 = Player(775, pygame.K_UP, pygame.K_DOWN)
+p = Human(0, pygame.K_w, pygame.K_s)
+p2 = Human(775, pygame.K_UP, pygame.K_DOWN)
 
 class Ball:
 
