@@ -33,21 +33,24 @@ w = Window()
 
 class Player:
 
-    def __init__(self, x, keyUp, keyDown):
+    def __init__(self, x):
         self.x = x
         self.y = w.y / 2
         self.w = 25
         self.h = 150
         self.y_change = 0
         self.y_change2 = 0
-        self.keyUp = keyUp
-        self.keyDown = keyDown
 
     def draw_paddle(self, w):
         pygame.draw.rect(w, white, [self.x, self.y - self.h/2, self.w, self.h])
 
 
 class Human(Player):
+    def __init__(self, x, keyUp, keyDown):
+        Player.__init__(self, x)
+        self.keyUp = keyUp
+        self.keyDown = keyDown
+
     def event_handling(self):
 
         if event.type == pygame.KEYDOWN:
@@ -69,10 +72,11 @@ class Human(Player):
 
 
 class SimplePC(Player):
-    def __init__(self, x, keyUp, keyDown):
-        Player.__init__(self, x, keyUp, keyDown)
+    def __init__(self, x, ball):
+        Player.__init__(self, x)
         self.count = 10
         self.y_change = 5
+        self.ball = ball
 
     def event_handling(self):
         self.count-=1
@@ -81,11 +85,20 @@ class SimplePC(Player):
             self.count = 20
         self.y += self.y_change
 
+class SimplePC2(Player):
+    def __init__(self, x, ball):
+        Player.__init__(self, x)
+        self.y_change = 0
+        self.ball = ball
 
+    def event_handling(self):
+        if self.ball.y > self.y:
+            self.y_change = 5
+        if self.ball.y < self.y:
+            self.y_change = -5
 
+        self.y += self.y_change
 
-p = Human(0, pygame.K_w, pygame.K_s)
-p2 = SimplePC(775, pygame.K_UP, pygame.K_DOWN)
 
 class Ball:
 
@@ -106,6 +119,9 @@ class Ball:
         self.y += self.veloy
 
 b = Ball()
+p = Human(0, pygame.K_w, pygame.K_s)
+p = SimplePC2(0, b)
+p2 = SimplePC2(775, b)
 
 def collision(r1, r2):
     if r2.x > r1.x and r2.x < r1.x + r1.w and r2.y > r1.y - r1.h/2 and r2.y < r1.y + r1.h/2:
