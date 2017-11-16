@@ -1,5 +1,5 @@
 import pygame
-
+import nn
 import time
 import random
 
@@ -39,10 +39,22 @@ class Player:
         self.w = 25
         self.h = 150
         self.y_change = 0
-        self.y_change2 = 0
 
     def draw_paddle(self, w):
         pygame.draw.rect(w, white, [self.x, self.y - self.h/2, self.w, self.h])
+
+    def tick(self):
+        self.event_handling()
+        self.y += self.y_change
+        if self.y<self.h/2:
+            self.y=self.h/2
+        if self.y+self.h/2>w.display_height:
+            self.y=w.display_height-self.h/2
+
+    def welldone(self):
+        pass
+    def lost(self):
+        pass
 
 
 class Human(Player):
@@ -61,14 +73,13 @@ class Human(Player):
             elif event.key == self.keyDown:
                 self.y_change = 5
 
-            '''if self.y >= 530 or self.y <= 70:
+            if self.y >= 530 or self.y <= 70:
                 self.y_change = 0
-                self.event_handling()'''
+                self.event_handling()
 
         if event.type == pygame.KEYUP:
             self.y_change = 0
 
-        self.y += self.y_change
 
 
 class SimplePC(Player):
@@ -83,7 +94,6 @@ class SimplePC(Player):
         if self.count == 0:
             self.y_change *= -1
             self.count = 20
-        self.y += self.y_change
 
 class SimplePC2(Player):
     def __init__(self, x, ball):
@@ -97,7 +107,44 @@ class SimplePC2(Player):
         if self.ball.y < self.y:
             self.y_change = -5
 
-        self.y += self.y_change
+
+class neuralPlayer(Player):
+    def __init__(self, x, ball):
+        Player.__init__(self, x)
+        self.y_change = 5
+        self.ball = ball
+        input_nodes = 3
+        hidden_nodes = 5
+        output_nodes = 3
+
+        learning_rate = 0.3
+
+        self.neural = nn.neuralNetwork(input_nodes, hidden_nodes, output_nodes, learning_rate)
+
+        data = []
+
+        for a in range(0,100):
+            self.neural.train([1,30,100],[1,0,0])
+            self.neural.train([1,30,400],[1,0,0])
+            self.neural.train([1,130,30],[0,0,1])
+            self.neural.train([1,50,50],[0,1,0])
+            self.neural.train([1,430,30],[0,0,1])
+
+
+
+    def event_handling(self):
+
+        i = [self.ball.x, self.ball.y, self.y]
+        r = self.neural.query([self.ball.x, self.ball.y, self.y])
+
+        if r[0] > r[1] and r[0] > r[2]:
+            self.y_change = -5
+        elif r[1] > r[0] and r[1] > r[2]:
+            self.y_change = 0
+        else:
+            self.y_change = 5
+
+        data = data.append([[self.ball.x, self.ball.]])
 
 
 class Ball:
@@ -120,7 +167,8 @@ class Ball:
 
 b = Ball()
 p = Human(0, pygame.K_w, pygame.K_s)
-p = SimplePC2(0, b)
+# p = SimplePC2(0, b)
+p = neuralPlayer(0, b)
 p2 = SimplePC2(775, b)
 
 def collision(r1, r2):
@@ -133,12 +181,14 @@ def direction_change():
         if b.velox != -b.velox:
             b.velox = b.velox + 1
         b.veloy = b.multi * (b.y - p.y)
+        p.welldone()
 
     if collision(p2, b):
         b.velox = -b.velox - 1
         if b.velox != -b.velox:
             b.velox = b.velox + 1
         b.veloy = b.multi * (b.y - p2.y)
+        p2.welldone()
 
     if b.y < 0 or b.y > w.y:
         b.veloy = -b.veloy
@@ -175,8 +225,8 @@ while not game_exit:
 
     p.draw_paddle(w.surface())
     p2.draw_paddle(w.surface())
-    p.event_handling()
-    p2.event_handling()
+    p.tick()
+    p2.tick()
 
     b.draw_ball(w.surface())
     b.step()
