@@ -121,7 +121,7 @@ class neuralPlayer(Player):
 
         self.neural = nn.neuralNetwork(input_nodes, hidden_nodes, output_nodes, learning_rate)
 
-        data = []
+        self.data = []
 
         for a in range(0,100):
             self.neural.train([1,30,100],[1,0,0])
@@ -130,7 +130,13 @@ class neuralPlayer(Player):
             self.neural.train([1,50,50],[0,1,0])
             self.neural.train([1,430,30],[0,0,1])
 
+    def welldone(self):
+        for a in self.data:
+            print(a)
+            self.neural.train(a[0],a[1])
 
+    def lost(self):
+        self.data = []
 
     def event_handling(self):
 
@@ -144,12 +150,15 @@ class neuralPlayer(Player):
         else:
             self.y_change = 5
 
-        data = data.append([[self.ball.x, self.ball.]])
+        self.data.append([i,[r[0][0],r[1][0],r[2][0]]])
 
 
 class Ball:
 
     def __init__(self):
+        self.reset()
+
+    def reset(self):
         self.x = w.x / 2
         self.y = w.y / 2
         self.w = 15
@@ -207,9 +216,14 @@ def message_display(text):
 
 def evaluation():
     if b.x < 0:
-        message_display("Right wins")
+        #message_display("Right wins")
+        p.lost()
+        b.reset()
+
     elif b.x > w.x:
-        message_display("Left wins")
+        #message_display("Left wins")
+        p2.lost()
+        b.reset()
 
 game_exit = False
 while not game_exit:
