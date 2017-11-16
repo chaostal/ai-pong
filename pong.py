@@ -43,7 +43,6 @@ class Player:
         self.keyUp = keyUp
         self.keyDown = keyDown
 
-
     def draw_paddle(self, w):
         pygame.draw.rect(w, white, [self.x, self.y - self.h/2, self.w, self.h])
 
@@ -69,8 +68,24 @@ class Human(Player):
         self.y += self.y_change
 
 
+class SimplePC(Player):
+    def __init__(self, x, keyUp, keyDown):
+        Player.__init__(self, x, keyUp, keyDown)
+        self.count = 10
+        self.y_change = 5
+
+    def event_handling(self):
+        self.count-=1
+        if self.count == 0:
+            self.y_change *= -1
+            self.count = 20
+        self.y += self.y_change
+
+
+
+
 p = Human(0, pygame.K_w, pygame.K_s)
-p2 = Human(775, pygame.K_UP, pygame.K_DOWN)
+p2 = SimplePC(775, pygame.K_UP, pygame.K_DOWN)
 
 class Ball:
 
