@@ -134,8 +134,12 @@ class neuralPlayer(Player):
         for a in self.data:
             print(a)
             self.neural.train(a[0],a[1])
+        self.data = []
 
     def lost(self):
+        for a in self.data:
+            print(a)
+            self.neural.train(a[0],[-a[1][0],-a[1][1],-a[1][2]])
         self.data = []
 
     def event_handling(self):
