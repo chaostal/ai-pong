@@ -33,13 +33,15 @@ w = Window()
 
 class Player:
 
-    def __init__(self, x):
+    def __init__(self, x, keyUp, keyDown):
         self.x = x
         self.y = w.y / 2
         self.w = 25
         self.h = 150
         self.y_change = 0
         self.y_change2 = 0
+        self.keyUp = keyUp
+        self.keyDown = keyDown
 
 
     def draw_paddle(self, w):
@@ -49,10 +51,10 @@ class Player:
 
         if event.type == pygame.KEYDOWN:
 
-            if event.key == pygame.K_w:
+            if event.key == self.keyUp:
                 self.y_change = -5
 
-            elif event.key == pygame.K_s:
+            elif event.key == self.keyDown:
                 self.y_change = 5
 
             '''if self.y >= 530 or self.y <= 70:
@@ -64,29 +66,9 @@ class Player:
 
         self.y += self.y_change
 
-    def event_handling2(self):
-        # y_change = 0
 
-        if event.type == pygame.KEYDOWN:
-
-            if event.key == pygame.K_UP:
-                self.y_change2 = -5
-
-            elif event.key == pygame.K_DOWN:
-                self.y_change2 = 5
-
-            '''if self.y >= 530 or self.y <= 70:
-                self.y_change2 = 0
-                self.event_handling2()'''
-
-        if event.type == pygame.KEYUP:
-            self.y_change2 = 0
-
-        self.y += self.y_change2
-
-
-p = Player(0)
-p2 = Player(775)
+p = Player(0, pygame.K_w, pygame.K_s)
+p2 = Player(775, pygame.K_UP, pygame.K_DOWN)
 
 class Ball:
 
@@ -161,7 +143,7 @@ while not game_exit:
     p.draw_paddle(w.surface())
     p2.draw_paddle(w.surface())
     p.event_handling()
-    p2.event_handling2()
+    p2.event_handling()
 
     b.draw_ball(w.surface())
     b.step()
