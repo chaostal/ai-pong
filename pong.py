@@ -8,6 +8,9 @@ pygame.init()
 black = (0, 0, 0)
 white = (255, 255, 255)
 
+SPEED = 10
+BALL_SPEED = 12
+
 fps = pygame.time.Clock()
 
 class Window:
@@ -35,10 +38,15 @@ class Player:
 
     def __init__(self, x):
         self.x = x
+        self.initX = x
         self.y = w.y / 2
         self.w = 25
         self.h = 150
         self.y_change = 0
+
+    def reset(self):
+        self.x = self.initX
+        self.y = w.y / 2
 
     def draw_paddle(self, w):
         pygame.draw.rect(w, white, [self.x, self.y - self.h/2, self.w, self.h])
@@ -48,12 +56,12 @@ class Player:
         self.y += self.y_change
         if self.y<self.h/2:
             self.y=self.h/2
-        if self.y+self.h/2>w.display_height:
-            self.y=w.display_height-self.h/2
+        if (self.y+self.h/2)>w.y:
+            self.y=w.y-self.h/2
 
     def welldone(self):
         pass
-    def lost(self):
+    def lost(self,dir):
         pass
 
 
@@ -68,10 +76,10 @@ class Human(Player):
         if event.type == pygame.KEYDOWN:
 
             if event.key == self.keyUp:
-                self.y_change = -5
+                self.y_change = -SPEED
 
             elif event.key == self.keyDown:
-                self.y_change = 5
+                self.y_change = SPEED
 
             if self.y >= 530 or self.y <= 70:
                 self.y_change = 0
@@ -86,7 +94,7 @@ class SimplePC(Player):
     def __init__(self, x, ball):
         Player.__init__(self, x)
         self.count = 10
-        self.y_change = 5
+        self.y_change = SPEED
         self.ball = ball
 
     def event_handling(self):
@@ -103,17 +111,17 @@ class SimplePC2(Player):
 
     def event_handling(self):
         if self.ball.y > self.y:
-            self.y_change = 5
+            self.y_change = SPEED
         if self.ball.y < self.y:
-            self.y_change = -5
+            self.y_change = -SPEED
 
 
 class neuralPlayer(Player):
     def __init__(self, x, ball):
         Player.__init__(self, x)
-        self.y_change = 5
+        self.y_change = SPEED
         self.ball = ball
-        input_nodes = 3
+        input_nodes = 5
         hidden_nodes = 5
         output_nodes = 3
 
@@ -123,36 +131,51 @@ class neuralPlayer(Player):
 
         self.data = []
 
-        for a in range(0,100):
-            self.neural.train([1,30,100],[1,0,0])
-            self.neural.train([1,30,400],[1,0,0])
-            self.neural.train([1,130,30],[0,0,1])
-            self.neural.train([1,50,50],[0,1,0])
-            self.neural.train([1,430,30],[0,0,1])
+#        for a in range(0,1):
+#        for a in range(0,1):
+#            self.neural.train([1,30,100],[1,0,0])
+#            self.neural.train([1,30,400],[1,0,0])
+#            self.neural.train([1,130,30],[0,0,1])
+#            self.neural.train([1,50,50],[0,1,0])
+#            self.neural.train([1,430,30],[0,0,1])
 
     def welldone(self):
-        for a in self.data:
-            print(a)
+        for a in self.data[-30:]:
             self.neural.train(a[0],a[1])
+        for a in self.data[-2:]:
+            self.neural.train(a[0],[0,1,0])
+        for a in self.data[:4]:
+            self.neural.train(a[0],[0,0.3,0])
         self.data = []
 
-    def lost(self):
-        for a in self.data:
-            print(a)
-            self.neural.train(a[0],[-a[1][0],-a[1][1],-a[1][2]])
+    def lost(self,dir,value):
+        print("VAL")
+        print(value)
+        for a in self.data[:2]:
+            self.neural.train(a[0],[0,0.3,0])
+        for a in self.data[-10:]:
+            x = a[0]
+            y = [
+                value if dir<0 else 0,
+                value if dir==0 else 0,
+                value if dir>0 else 0]
+            self.neural.train(x,y)
         self.data = []
 
     def event_handling(self):
 
-        i = [self.ball.x, self.ball.y, self.y]
-        r = self.neural.query([self.ball.x, self.ball.y, self.y])
-
+        i = [self.ball.x, self.ball.y, self.y, self.ball.velox, self.ball.veloy]
+        r = self.neural.query(i) #[self.ball.x, self.ball.y, self.y])
         if r[0] > r[1] and r[0] > r[2]:
-            self.y_change = -5
+            self.y_change = -SPEED
         elif r[1] > r[0] and r[1] > r[2]:
             self.y_change = 0
         else:
-            self.y_change = 5
+            self.y_change = SPEED
+        #print(i)
+        #print(r)
+        
+       # print(self.y_change)
 
         self.data.append([i,[r[0][0],r[1][0],r[2][0]]])
 
@@ -167,8 +190,8 @@ class Ball:
         self.y = w.y / 2
         self.w = 15
         self.h = 15
-        self.velox = -6
-        self.veloy = -1
+        self.velox = -BALL_SPEED
+        self.veloy = random.randrange(-3,3) #-1
         self.multi = 0.03
 
     def draw_ball(self, w):
@@ -219,15 +242,19 @@ def message_display(text):
     pygame.display.update()
 
 def evaluation():
+    done = False
     if b.x < 0:
         #message_display("Right wins")
-        p.lost()
-        b.reset()
-
+        p.lost(1 if p.y<b.y else -1, abs(b.y-p.y)*1.0/(w.y))
+        done = True
     elif b.x > w.x:
         #message_display("Left wins")
-        p2.lost()
+        p2.lost(1 if p2.y<b.y else -1, abs(b.y-p2.y)*1.0/(w.y))
+        done = True
+    if done:
         b.reset()
+        p.reset()
+        p2.reset()
 
 game_exit = False
 while not game_exit:
