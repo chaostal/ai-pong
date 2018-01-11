@@ -10,11 +10,11 @@ white = (255, 255, 255)
 
 fps = pygame.time.Clock()
 
-# text = open("data.txt", "a")
+# text = open("trainingdata.txt", "a")
 
 class Window:
 
-    def __init__(self, display_width=800*0.4, display_height=600*0.7):
+    def __init__(self, display_width = 800*0.4, display_height = 600*0.7):
         self.x = 800
         self.y = 600
         self.display_width = display_width
@@ -32,6 +32,8 @@ class Window:
         pygame.draw.line(w, white, (407, 600), (407, 0), 1)
 
 w = Window()
+
+# Players
 
 class Player:
 
@@ -109,6 +111,7 @@ class SimplePC2(Player):
         if self.ball.y < self.y:
             self.y_change = -5
 
+# Neural Network
 
 class neuralPlayer(Player):
     def __init__(self, x, ball):
@@ -151,7 +154,7 @@ class neuralPlayer(Player):
 
     def event_handling(self):
 
-        i = [self.ball.x, self.ball.y, self.y]
+        i = [self.ball.x, self.ball.y, self.y] # self.y in class Player
         r = self.neural.query([self.ball.x, self.ball.y, self.y])
 
         if r[0] > r[1] and r[0] > r[2]:
@@ -220,9 +223,9 @@ def text_objects(text, font):
     return textSurface, textSurface.get_rect()
 
 def message_display(text):
-    largeText = pygame.font.Font("freesansbold.ttf",115)
+    largeText = pygame.font.Font("freesansbold.ttf", 115)
     TextSurf, TextRect = text_objects(text, largeText)
-    TextRect.center = ((w.x/2),(w.y/2))
+    TextRect.center = ((w.x / 2),(w.y / 2))
     w.win.blit(TextSurf, TextRect)
 
     pygame.display.update()
