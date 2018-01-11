@@ -10,7 +10,7 @@ white = (255, 255, 255)
 
 fps = pygame.time.Clock()
 
-text = open("data.txt", "a")
+# text = open("data.txt", "a")
 
 class Window:
 
@@ -50,8 +50,8 @@ class Player:
         self.y += self.y_change
         if self.y < self.h / 2:
             self.y = self.h / 2
-        if self.y + self.h / 2 > w.display_height:
-            self.y = w.display_height - self.h / 2
+        if self.y + self.h / 2 > w.y:
+            self.y = w.y - self.h / 2
 
     def welldone(self):
         pass
@@ -129,7 +129,7 @@ class neuralPlayer(Player):
             self.neural.train([1, 30, 100], [1, 0, 0])
             self.neural.train([1, 30, 400], [1, 0, 0])
             self.neural.train([1, 130, 30], [0, 0, 1])
-            self.neural.train([1, 50, 50], [0,1,0])
+            self.neural.train([1, 50, 50], [0, 1, 0])
             self.neural.train([1, 430, 30], [0, 0, 1])
 
     def welldone(self):
@@ -137,7 +137,7 @@ class neuralPlayer(Player):
             print(a)
             self.neural.train(a[0], a[1])
             string = str(a[0]) + "," + str(a[1])
-            text.write(string)
+            # text.write(string)
         self.data = []
 
     def lost(self):
@@ -145,7 +145,7 @@ class neuralPlayer(Player):
             print(a)
             self.neural.train(a[0], [-a[1][0], -a[1][1], -a[1][2]])
             string = a[0] + [-a[1][0], -a[1][1], -a[1][2]]
-            text.write(str(string))
+            # text.write(str(string))
         self.data = []
 
 
@@ -177,7 +177,7 @@ class Ball:
         self.w = 15
         self.h = 15
         self.velox = -6
-        self.veloy = -1
+        self.veloy = random.randrange(-3, 3)
         self.multi = 0.03
 
     def draw_ball(self, w):
@@ -243,7 +243,7 @@ while not game_exit:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
-            text.close()
+            # text.close()
             quit()
 
     w.show()
