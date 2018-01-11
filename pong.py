@@ -9,7 +9,7 @@ black = (0, 0, 0)
 white = (255, 255, 255)
 
 SPEED = 10
-BALL_SPEED = 12
+BALL_SPEED = 6
 
 fps = pygame.time.Clock()
 
@@ -61,7 +61,7 @@ class Player:
 
     def welldone(self):
         pass
-    def lost(self,dir):
+    def lost(self,dir,value):
         pass
 
 
@@ -116,7 +116,7 @@ class SimplePC2(Player):
             self.y_change = -SPEED
 
 
-class neuralPlayer(Player):
+class NeuralPlayer(Player):
     def __init__(self, x, ball):
         Player.__init__(self, x)
         self.y_change = SPEED
@@ -131,14 +131,6 @@ class neuralPlayer(Player):
 
         self.data = []
 
-#        for a in range(0,1):
-#        for a in range(0,1):
-#            self.neural.train([1,30,100],[1,0,0])
-#            self.neural.train([1,30,400],[1,0,0])
-#            self.neural.train([1,130,30],[0,0,1])
-#            self.neural.train([1,50,50],[0,1,0])
-#            self.neural.train([1,430,30],[0,0,1])
-
     def welldone(self):
         for a in self.data[-30:]:
             self.neural.train(a[0],a[1])
@@ -148,9 +140,9 @@ class neuralPlayer(Player):
             self.neural.train(a[0],[0,0.3,0])
         self.data = []
 
-    def lost(self,dir,value):
+    def lost(self,dir):
         print("VAL")
-        print(value)
+        #print(value)
         for a in self.data[:2]:
             self.neural.train(a[0],[0,0.3,0])
         for a in self.data[-10:]:
@@ -165,19 +157,91 @@ class neuralPlayer(Player):
     def event_handling(self):
 
         i = [self.ball.x, self.ball.y, self.y, self.ball.velox, self.ball.veloy]
-        r = self.neural.query(i) #[self.ball.x, self.ball.y, self.y])
+        r = self.neural.query(i)
         if r[0] > r[1] and r[0] > r[2]:
             self.y_change = -SPEED
         elif r[1] > r[0] and r[1] > r[2]:
             self.y_change = 0
         else:
             self.y_change = SPEED
-        #print(i)
-        #print(r)
-        
-       # print(self.y_change)
 
         self.data.append([i,[r[0][0],r[1][0],r[2][0]]])
+
+class NeuralPlayer2(Player):
+    def __init__(self, x, ball):
+        Player.__init__(self, x)
+        self.y_change = SPEED
+        self.ball = ball
+        input_nodes = 3
+        hidden_nodes = 3
+        output_nodes = 1
+
+        learning_rate = 0.3
+
+        self.neural = nn.neuralNetwork(input_nodes, hidden_nodes, output_nodes, learning_rate)
+
+        self.data = []
+
+    def welldone(self):
+        for a in self.data[-30:]:
+            self.neural.train(a,[1])
+        self.data = []
+
+    def lost(self,dir,value):
+        for a in self.data[-10:]:
+            self.neural.train(a,[0])
+        self.data = []
+
+    def currentData(self, val):
+        return [self.ball.y, self.y, val*1000]
+        return [self.ball.x, self.ball.y, self.y, self.ball.velox, self.ball.veloy, val*1000]
+
+    def result(self,val):
+        i = self.currentData(val)
+        r = self.neural.query(i)
+        print(r)
+        print(i)
+        return r[0]
+
+    def event_handling(self):
+        r = [self.result(-1), self.result(0), self.result(1)]
+        dir = 0
+        if r[0] > r[1] and r[0] > r[2]:
+            dir = -1
+        elif r[1] > r[0] and r[1] > r[2]:
+            dir = 0
+        else:
+            dir = 1
+            
+        self.y_change = dir * SPEED
+
+        self.data.append(self.currentData(dir))
+
+
+class NeuralPlayer3(NeuralPlayer2):
+    def __init__(self, x, ball):
+        NeuralPlayer2.__init__(self, x, ball)
+        self.ticks=0
+
+    def event_handling(self):
+        self.ticks = self.ticks+1
+        if self.ticks<1500:
+            print("TRAIN"+str(self.ticks))
+            dir= 0
+            if self.ball.y > self.y:
+                dir = 1
+            if self.ball.y < self.y:
+                dir = -1
+            self.y_change = dir * SPEED
+#            self.data.append(self.currentData(dir))
+            self.neural.train(self.currentData(1),[1 if dir==1 else 0])
+            self.neural.train(self.currentData(0),[1 if dir==0 else 0])
+            self.neural.train(self.currentData(-1),[1 if dir==-1 else 0])
+
+        else:
+            NeuralPlayer2.event_handling(self)
+
+
 
 
 class Ball:
@@ -203,9 +267,10 @@ class Ball:
 
 b = Ball()
 p = Human(0, pygame.K_w, pygame.K_s)
-# p = SimplePC2(0, b)
-p = neuralPlayer(0, b)
-p2 = SimplePC2(775, b)
+#p = SimplePC2(0, b)
+p2 = NeuralPlayer3(775, b)
+#p = SimplePC2(0, b)
+#p2 = SimplePC2(775, b)
 
 def collision(r1, r2):
     if r2.x > r1.x and r2.x < r1.x + r1.w and r2.y > r1.y - r1.h/2 and r2.y < r1.y + r1.h/2:
