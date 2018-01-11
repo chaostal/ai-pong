@@ -26,8 +26,8 @@ class neuralNetwork:
     # train the neural network
     def train(self, inputs_list, targets_list):
     	# convert inputs list to 2d array
-    	inputs = numpy.array(inputs_list, ndmin=2).T
-    	targets = numpy.array(targets_list, ndmin=2).T
+    	inputs = numpy.array(inputs_list, ndmin = 2).T
+    	targets = numpy.array(targets_list, ndmin = 2).T
     	# calculate signals into hidden layer
     	hidden_inputs = numpy.dot(self.wih, inputs)
     	# calculate the signals emerging from hidden layer
@@ -50,7 +50,7 @@ class neuralNetwork:
     # query the neural network
     def query(self, inputs_list):
     	# convert inputs list to 2d array
-    	inputs = numpy.array(inputs_list, ndmin=2).T
+    	inputs = numpy.array(inputs_list, ndmin = 2).T
     	# calculate signals into hidden layer
     	hidden_inputs = numpy.dot(self.wih, inputs)
     	# calculate the signals emerging from hidden layer

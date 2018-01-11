@@ -10,6 +10,8 @@ white = (255, 255, 255)
 
 fps = pygame.time.Clock()
 
+text = open("data.txt", "a")
+
 class Window:
 
     def __init__(self, display_width=800*0.4, display_height=600*0.7):
@@ -46,10 +48,10 @@ class Player:
     def tick(self):
         self.event_handling()
         self.y += self.y_change
-        if self.y<self.h/2:
-            self.y=self.h/2
-        if self.y+self.h/2>w.display_height:
-            self.y=w.display_height-self.h/2
+        if self.y < self.h / 2:
+            self.y = self.h / 2
+        if self.y + self.h / 2 > w.display_height:
+            self.y = w.display_height - self.h / 2
 
     def welldone(self):
         pass
@@ -123,24 +125,29 @@ class neuralPlayer(Player):
 
         self.data = []
 
-        for a in range(0,100):
-            self.neural.train([1,30,100],[1,0,0])
-            self.neural.train([1,30,400],[1,0,0])
-            self.neural.train([1,130,30],[0,0,1])
-            self.neural.train([1,50,50],[0,1,0])
-            self.neural.train([1,430,30],[0,0,1])
+        for a in range(0, 100):
+            self.neural.train([1, 30, 100], [1, 0, 0])
+            self.neural.train([1, 30, 400], [1, 0, 0])
+            self.neural.train([1, 130, 30], [0, 0, 1])
+            self.neural.train([1, 50, 50], [0,1,0])
+            self.neural.train([1, 430, 30], [0, 0, 1])
 
     def welldone(self):
         for a in self.data:
             print(a)
-            self.neural.train(a[0],a[1])
+            self.neural.train(a[0], a[1])
+            string = str(a[0]) + "," + str(a[1])
+            text.write(string)
         self.data = []
 
     def lost(self):
         for a in self.data:
             print(a)
-            self.neural.train(a[0],[-a[1][0],-a[1][1],-a[1][2]])
+            self.neural.train(a[0], [-a[1][0], -a[1][1], -a[1][2]])
+            string = a[0] + [-a[1][0], -a[1][1], -a[1][2]]
+            text.write(str(string))
         self.data = []
+
 
     def event_handling(self):
 
@@ -154,7 +161,9 @@ class neuralPlayer(Player):
         else:
             self.y_change = 5
 
-        self.data.append([i,[r[0][0],r[1][0],r[2][0]]])
+        self.data.append([i, [r[0][0], r[1][0], r[2][0]]])
+
+        self.data.append([i, [r[0][0], r[1][0], r[2][0]]])
 
 
 class Ball:
@@ -185,7 +194,7 @@ p = neuralPlayer(0, b)
 p2 = SimplePC2(775, b)
 
 def collision(r1, r2):
-    if r2.x > r1.x and r2.x < r1.x + r1.w and r2.y > r1.y - r1.h/2 and r2.y < r1.y + r1.h/2:
+    if r2.x > r1.x and r2.x < r1.x + r1.w and r2.y > r1.y - r1.h / 2 and r2.y < r1.y + r1.h / 2:
         return True
 
 def direction_change():
@@ -220,12 +229,12 @@ def message_display(text):
 
 def evaluation():
     if b.x < 0:
-        #message_display("Right wins")
+        # message_display("Right wins")
         p.lost()
         b.reset()
 
     elif b.x > w.x:
-        #message_display("Left wins")
+        # message_display("Left wins")
         p2.lost()
         b.reset()
 
@@ -234,6 +243,7 @@ while not game_exit:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
+            text.close()
             quit()
 
     w.show()
@@ -252,4 +262,4 @@ while not game_exit:
     direction_change()
 
     pygame.display.update()
-    fps.tick(60)
+    fps.tick(150)
